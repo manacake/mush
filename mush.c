@@ -79,6 +79,51 @@ char *glue(char *left, char *right) {
 }
 
 void launch() {
+        char *box;
+        char *cmd = argv[0];
+        int j = 0;
+
+        if (argv[0] == '\000') return; /* return for blank input */
+
+        /* support for echo $_ */
+        while (argv[j] != '\000') {
+                box = argv[j];
+                if (box == '\000') break;
+                if (box[0] == '$') {
+                        char *k = getenv(&box[1]);
+                        if (k != '\000') {
+                                argv[j] = k;
+                        } else {
+                                printf("Undefined environment variable.\n");
+                                return;
+                        }
+                }
+                j++;
+        }
+
+        /* support for exit */
+        if (strcmp(cmd, "exit") == 0) { /* if identical strings */
+                if (argv[1] != '\000') {
+                        printf("Exit is followed by too many arguments.\n");
+                }
+                exit( EXIT_SUCCESS );
+        }
+
+        /* support for setenv */
+        if (strcmp(cmd, "setenv") == 0) {
+                char *var = argv[1];
+                char *val = argv[2];
+                if (var == '\000') {
+                        printf("Environment variable cannot be null.\n");
+                } else if (val == '\000') {
+                        /* if value is not supplied, use empty string */
+                        setenv( var, "", 1 );
+                } else {
+                        setenv( var, val, 1 );
+                }
+                return;
+        }
+
         if (fork() == 0) { /*child*/
                 execve(argv[0], argv, environ); /* try to execute literal command */
                 int i = 0;
